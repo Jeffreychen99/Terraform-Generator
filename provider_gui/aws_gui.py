@@ -7,7 +7,7 @@ import os
 from util.tf_util import *
 from util.gui_util import *
 
-import tf_generators.aws_tf as tf
+import tf_generator.aws_tf as tf
 
 class aws_gui:
 
