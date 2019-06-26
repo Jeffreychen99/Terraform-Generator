@@ -17,13 +17,8 @@ class gui:
 		self.master.title("Terraform Generator")
 		self.menuScreen()
 
-	def clearScreen(self):
-		for child in self.master.winfo_children():
-			child.destroy()
-		self.master.update_idletasks()
-
 	def menuScreen(self):
-		self.clearScreen()
+		clearScreen(self)
 		width = self.master.winfo_width()
 		height = self.master.winfo_height()
 
@@ -87,7 +82,7 @@ class gui:
 			directory = directoryLabel["text"]
 			if directoryLabel["text"] != "No directory selected":
 				provider_gui = provider_functions[selectedOption.get()](self.master)
-				gui.clearScreen(provider_gui)
+				clearScreen(provider_gui)
 				provider_gui.implement(directory)
 		submitButton = Button(submitButtonFrame, command=lambda: submit(directoryLabel), text="Continue")
 		submitButton["fg"] = "#999999"

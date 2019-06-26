@@ -12,6 +12,11 @@ def placeView(master, cls, x, y, w, h, *args, **kwargs):
 	view.pack(fill=BOTH, expand=1)
 	return view
 
+def clearScreen(gui):
+	for child in gui.master.winfo_children():
+		child.destroy()
+	gui.master.update_idletasks()
+
 
 
 
