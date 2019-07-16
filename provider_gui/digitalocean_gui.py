@@ -7,7 +7,10 @@ import os
 from util.tf_util import *
 from util.gui_util import *
 
-import tf_generator.digitalocean_tf as tf
+import util.provider_utils.digitalocean_tf as tf
+from tf_generation.terra import *
+
+from resource_gui import Resource_GUI
 
 class digitalocean_gui:
 

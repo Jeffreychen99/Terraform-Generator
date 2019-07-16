@@ -12,55 +12,35 @@ def apply():
 
 #######################################################
 
-def ssh_keygen(keyName, protocol):
-	if not os.path.isdir(os.getcwd() + "/keys"):
-		os.mkdir(os.getcwd() + "/keys")
-	else:
-		os.system("rm /keys/*")
+def writeProvider(terra):
+	currdir = os.getcwd()
+	provider_tf = open("provider.tf", "w")
+	provider_tf.write(terra.tf_string())
+	provider_tf.close()
 
-	os.system("echo " + os.getcwd() + "/keys/" + keyName + " | ssh-keygen -t " + protocol)
-	os.system("ssh-keygen -E md5 -lf " + os.getcwd() + "/keys/" + keyName + ".pub > temp_fingerprint")
-	with open("temp_fingerprint") as temp_fingerprint:
-		fp = temp_fingerprint.readline()
-		fp = fp[fp.index(":") + 1:]
-		fp = fp[:fp.index(" ")]
-		fingerprint = open(os.getcwd() + "/keys/" + keyName + ".fingerprint", "w")
-		fingerprint.write(fp)
-		fingerprint.close()
-	os.system("rm temp_fingerprint")
+def writeResources(terra):
+	currdir = os.getcwd()
+	resource_tf = open("resources.tf", "w")
+
+	for res in terra.resources:
+		resource_tf.write(res.tf_string() + "\n")
+
+	resource_tf.close()
+
+def writeDatasources(terra):
+	currdir = os.getcwd()
+	datasource_tf = open("datasources.tf", "w")
+
+	for ds in terra.datasources:
+		datasource_tf.write(ds.tf_string() + "\n")
+
+	datasource_tf.close()
+
+#######################################################
 
 
 def checkValidPlan():
 	return os.path.isfile("provider.tf") and os.path.isfile("current_plan")
-
-#######################################################
-
-class Resource:
-
-	name = ""
-	resourceType = ""
-
-	ami = ""
-	instanceType = ""
-	tags = {}
-	provisioner = None
-
-	def __init__(self, resourceName):
-		self.name = resourceName
-
-
-class Data:
-
-	name = ""
-	dataType = ""
-
-	ami = ""
-	instanceType = ""
-	tags = {}
-	provisioner = None
-
-	def __init__(self, resourceName):
-		self.name = resourceName
 
 
 

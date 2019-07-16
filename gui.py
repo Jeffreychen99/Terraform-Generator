@@ -11,7 +11,7 @@ from provider_gui.digitalocean_gui import digitalocean_gui
 from util.tf_util import *
 from util.gui_util import *
 
-class gui:
+class GUI:
 	def __init__(self, master):             
 		self.master = master
 		self.master.title("Terraform Generator")
@@ -82,7 +82,7 @@ class gui:
 			directory = directoryLabel["text"]
 			if directoryLabel["text"] != "No directory selected":
 				provider_gui = provider_functions[selectedOption.get()](self.master)
-				clearScreen(provider_gui)
+				clearScreen(self)
 				provider_gui.implement(directory)
 		submitButton = Button(submitButtonFrame, command=lambda: submit(directoryLabel), text="Continue")
 		submitButton["fg"] = "#999999"
@@ -94,7 +94,7 @@ root = Tk()
 root.geometry("1000x750")
 root.resizable(False, False)
 
-app = gui(root)
+app = GUI(root)
 root.mainloop()
 
 
