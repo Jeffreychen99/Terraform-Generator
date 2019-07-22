@@ -14,18 +14,6 @@ class Resource:
 
 		self.arguments = arguments
 
-	def addArgument(self, key, value):
-		arguments[key] = value
-
-	def removeArgument(self, key, value):
-		arguments.pop(key)
-
-	def addTag(self, key, value):
-		tags[key] = value
-
-	def removeTag(self, key):
-		tags.pop(key)
-
 	def checkRequiredArgs(self):
 		# DO THIS USING HTML PARSING
 		required = []
@@ -37,13 +25,13 @@ class Resource:
 	def tf_string(self):
 		resource_string = ""
 		resource_string += 'resource "' + self.resource_type + '" "' + self.name + '" { \n'
-		for arg in arguments.keys():
-			resource_string += '    ' + arg +  ' = "' + arguments[arg] + '" \n'
+		for arg in self.arguments.keys():
+			resource_string += '    ' + arg +  ' = "' + self.arguments[arg] + '" \n'
 
-		if len(tags.keys()) > 0:
+		if len(self.tags.keys()) > 0:
 			resource_string += '\n     tags = { \n'
-			for tag in tags.keys():
-				resource_string += '        ' + tag +  ' = "' + tags[tag] + '" \n'
+			for tag in self.tags.keys():
+				resource_string += '        ' + tag +  ' = "' + self.tags[tag] + '" \n'
 			resource_string += '     } \n'
 		resource_string += '} \n'
 
