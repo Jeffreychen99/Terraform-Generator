@@ -203,6 +203,7 @@ class Resource_GUI:
 		self.tagsCanvas.create_window(scrollRegion, width=width*0.4125, height=height*0.05, window=tag, anchor='nw')
 
 		self.tagsList.append((self.tagName.get(), tag))
+		self.tagsDict[self.tagName.get()] = self.tagValue.get()
 		print("Adding Tag:   @ " + self.tagName.get() + "  ~  " + self.tagValue.get())
 		self.tagName.set("")
 		self.tagValue.set("")
@@ -232,7 +233,8 @@ class Resource_GUI:
 		self.canvas.create_window(scrollRegion, width=width*0.4125, height=height*0.05, window=res, anchor='nw')
 		self.resourceButtonList.append((res["text"], res))
 
-		resource = Resource(self.newResourceName.get(), self.selectedResourceType, [])
+		resTypeFull = self.terra.provider + "_" + self.selectedResourceType.get()
+		resource = Resource(self.newResourceName.get(), resTypeFull, {})
 		resource.tags = self.tagsDict
 		self.terra.resources.append(resource)
 
