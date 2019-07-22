@@ -6,7 +6,7 @@ def getProviderList():
 
 def getResourceList(provider):
 	url = 'https://www.terraform.io/docs/providers/' + provider + '/index.html'
-	soup  = BeautifulSoup(requests.get(url).text)
+	soup  = BeautifulSoup(requests.get(url).text, features="html.parser")
 
 	resources = []
 	for li in soup.find_all('li'):
