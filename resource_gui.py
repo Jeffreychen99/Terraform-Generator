@@ -3,6 +3,7 @@ from tkinter import messagebox
 from tkinter import filedialog
 
 import util.tf_util as tf_util
+import util.web_util as web_util
 from util.gui_util import *
 from util.web_util import *
 
@@ -30,10 +31,15 @@ class Resource_GUI:
 		height = self.master.winfo_height()
 
 		title = placeView(self.master, Label, x=0, y=0, w=width, h=height*0.1)
-		title["text"] = "Terraform Infrastructure Generator:   AWS"
+		title["text"] = "Terraform Infrastructure Generator:   " + self.terra.provider.upper()
 		title["font"] = "Helvetica 25 bold"
-		title["bg"] = "#6f24e8"
+		title["bg"] = "#5C4EE5"
 		title["fg"] = "white"
+
+		planButtonFrame = createFrame(self.master, x=width*0.05, y=height*0.85, w=width*0.2, h=height*0.1)
+		self.planButton = Button(planButtonFrame, command=self.plan , text="Plan")
+		self.planButton["font"] = "fixedsys 20 bold"
+		self.planButton.pack(fill=BOTH, expand=1)
 
 		applyButtonFrame = createFrame(self.master, x=width*0.75, y=height*0.85, w=width*0.2, h=height*0.1)
 		self.applyButton = Button(applyButtonFrame, text="Apply")
@@ -42,24 +48,19 @@ class Resource_GUI:
 		self.applyButton["font"] = "fixedsys 20 bold"
 		self.applyButton.pack(fill=BOTH, expand=1)
 
-		planButtonFrame = createFrame(self.master, x=width*0.05, y=height*0.85, w=width*0.2, h=height*0.1)
-		self.planButton = Button(planButtonFrame, command=self.plan , text="Plan")
-		self.planButton["font"] = "fixedsys 20 bold"
-		self.planButton.pack(fill=BOTH, expand=1)
-
 
 	def resourceCreation(self):
 		width = self.master.winfo_width()
 		height = self.master.winfo_height()
 
-		resources = placeView(self.master, Label, x=width*0.05, y=height*0.35, w=width*0.25, h=height*0.05)
+		resources = placeView(self.master, Label, x=width*0.05, y=height*0.125, w=width*0.25, h=height*0.05)
 		resources["anchor"] = 'w'
 		resources["justify"] = 'left'
 		resources["font"] = "fixedsys 18 bold"
 		resources["fg"] = "black"
 		resources["text"] = "List of Resources:"
 
-		self.canvasFrame = createFrame(self.master, x=width*0.05, y=height*0.425, w=width*0.425, h=height*0.35)
+		self.canvasFrame = createFrame(self.master, x=width*0.05, y=height*0.2, w=width*0.425, h=height*0.35)
 		self.canvas = Canvas(self.canvasFrame)
 		scrollBar = Scrollbar(self.canvasFrame, orient="vertical",command=self.canvas.yview)
 		self.canvas.configure(yscrollcommand=scrollBar.set)
@@ -73,48 +74,47 @@ class Resource_GUI:
 		self.resourceButtonList = []
 		self.resourceDict = {}
 
-		self.createNewResourceLabel = placeView(self.master, Label, x=width*0.525, y=height*0.35, w=width*0.15, h=height*0.05)
+		self.createNewResourceLabel = placeView(self.master, Label, x=width*0.525, y=height*0.125, w=width*0.15, h=height*0.05)
 		self.createNewResourceLabel["anchor"] = 'w'
 		self.createNewResourceLabel["justify"] = 'left'
 		self.createNewResourceLabel["font"] = "fixedsys 18 bold"
 		self.createNewResourceLabel["fg"] = "black"
 		self.createNewResourceLabel["text"] = "Create Resource:"
 
-		self.newResourceLabel = placeView(self.master, Label, x=width*0.7, y=height*0.325, w=width*0.2, h=height*0.025)
+		self.resourceType = placeView(self.master, Label, x=width*0.525, y=height*0.175, w=width*0.15, h=height*0.025)
+		self.resourceType["anchor"] = 'sw'
+		self.resourceType["justify"] = 'left'
+		self.resourceType["font"] = "fixedsys 12 italic"
+		self.resourceType["fg"] = "#4e4e4e"
+		self.resourceType["text"] = "  Resource Type"
+		self.resourceTypeFrame = createFrame(self.master, x=width*0.525, y=height*0.2, w=width*0.175, h=height*0.05)
+		resourceTypeOptions = web_util.getResourceList(self.terra.provider)
+		self.selectedResourceType = StringVar(self.resourceTypeFrame); self.selectedResourceType.set(resourceTypeOptions[0])
+		self.resourceTypeMenu = OptionMenu(self.resourceTypeFrame, self.selectedResourceType, *resourceTypeOptions)
+		self.resourceTypeMenu.pack(fill=BOTH, expand=1)
+
+		self.newResourceLabel = placeView(self.master, Label, x=width*0.725, y=height*0.175, w=width*0.175, h=height*0.025)
 		self.newResourceLabel["anchor"] = 'sw'
 		self.newResourceLabel["justify"] = 'left'
 		self.newResourceLabel["font"] = "fixedsys 12 italic"
 		self.newResourceLabel["fg"] = "#4e4e4e"
 		self.newResourceLabel["text"] = "  New Resource Name"
 		self.newResourceName = StringVar()
-		self.newResourceEntry = placeView(self.master, Entry, x=width*0.7, y=height*0.35, w=width*0.25, h=height*0.05)
+		self.newResourceEntry = placeView(self.master, Entry, x=width*0.725, y=height*0.2 , w=width*0.225, h=height*0.05)
 		self.newResourceEntry["textvariable"] = self.newResourceName
 		self.newResourceEntry["borderwidth"] = 0
 		self.newResourceEntry["bg"] = "#dddddd"
 
-		self.amiLabel = placeView(self.master, Label, x=width*0.525, y=height*0.4125, w=width*0.2, h=height*0.025)
-		self.amiLabel["anchor"] = 'sw'
-		self.amiLabel["justify"] = 'left'
-		self.amiLabel["font"] = "fixedsys 12 italic"
-		self.amiLabel["fg"] = "#4e4e4e"
-		self.amiLabel["text"] = "  AMI"
-		self.ami = StringVar()
-		self.amiEntry = placeView(self.master, Entry, x=width*0.525, y=height*0.4375, w=width*0.2, h=height*0.05)
-		self.amiEntry["textvariable"] = self.ami
-		self.amiEntry["borderwidth"] = 0
-		self.amiEntry["bg"] = "#dddddd"
-
-		self.instanceLabel = placeView(self.master, Label, x=width*0.75, y=height*0.4125, w=width*0.2, h=height*0.025)
-		self.instanceLabel["anchor"] = 'sw'
-		self.instanceLabel["justify"] = 'left'
-		self.instanceLabel["font"] = "fixedsys 12 italic"
-		self.instanceLabel["fg"] = "#4e4e4e"
-		self.instanceLabel["text"] = "  Instance Type"
-		self.instanceType = StringVar()
-		self.instanceTypeEntry = placeView(self.master, Entry, x=width*0.75, y=height*0.4375, w=width*0.2, h=height*0.05)
-		self.instanceTypeEntry["textvariable"] = self.instanceType
-		self.instanceTypeEntry["borderwidth"] = 0
-		self.instanceTypeEntry["bg"] = "#dddddd"
+		self.argsCanvasFrame = createFrame(self.master, x=width*0.525, y=height*0.275, w=width*0.425, h=height*0.2)
+		self.argsCanvas = Canvas(self.argsCanvasFrame)
+		scrollBar = Scrollbar(self.argsCanvasFrame, orient="vertical",command=self.argsCanvas.yview)
+		self.argsCanvas.configure(yscrollcommand=scrollBar.set)
+		scrollBar.pack(side="right",fill="y")
+		self.argsCanvas.pack(side="left")
+		argsFrame = Frame(self.argsCanvas)
+		self.argsCanvas.create_window((0,0), width=width*0.525, height=height*0.2, window=argsFrame, anchor='nw')
+		argsFrame["bg"] = "#eeeeee"
+		self.argsCanvas.configure(scrollregion=(0, 0, width*0.525, height*0.2), width=width*0.425, height=height*0.2)
 
 		self.tags = placeView(self.master, Label, x=width*0.525, y=height*0.5125, w=width*0.05, h=height*0.05)
 		self.tags["anchor"] = 'w'
@@ -160,9 +160,9 @@ class Resource_GUI:
 		scrollBar.pack(side="right",fill="y")
 		self.tagsCanvas.pack(side="left")
 		tagsFrame = Frame(self.tagsCanvas)
-		self.tagsCanvas.create_window((0,0), width=width*0.525, height=height*0.575, window=tagsFrame, anchor='nw')
+		self.tagsCanvas.create_window((0,0), width=width*0.525, height=height*0.15, window=tagsFrame, anchor='nw')
 		tagsFrame["bg"] = "#eeeeee"
-		self.tagsCanvas.configure(scrollregion=(0, 0, width*0.525, height*0.575), width=width*0.425, height=height*0.15)
+		self.tagsCanvas.configure(scrollregion=(0, 0, width*0.525, height*0.15), width=width*0.425, height=height*0.15)
 
 		self.tagsList = []
 		self.tagsDict = {}
@@ -187,13 +187,11 @@ class Resource_GUI:
 			MsgBox = messagebox.showerror('Error', 'There is already a tag with this name')
 			return
 
-		print("Adding Tag:   @ " + self.tagName.get() + "  ~  " + self.tagValue.get())
-
 		width = self.master.winfo_width()
 		height = self.master.winfo_height()
 
 		scrollHeight = height*0.05*(len(self.tagsList) + 1)
-		if scrollHeight > height*0.2:
+		if scrollHeight > height*0.15:
 			self.tagsCanvas.configure(scrollregion=(0, 0, width*0.425, scrollHeight), height=scrollHeight)
 
 		tag = Button(self.tagsCanvasFrame)
@@ -205,6 +203,7 @@ class Resource_GUI:
 		self.tagsCanvas.create_window(scrollRegion, width=width*0.4125, height=height*0.05, window=tag, anchor='nw')
 
 		self.tagsList.append((self.tagName.get(), tag))
+		print("Adding Tag:   @ " + self.tagName.get() + "  ~  " + self.tagValue.get())
 		self.tagName.set("")
 		self.tagValue.set("")
 
@@ -233,34 +232,24 @@ class Resource_GUI:
 		self.canvas.create_window(scrollRegion, width=width*0.4125, height=height*0.05, window=res, anchor='nw')
 		self.resourceButtonList.append((res["text"], res))
 
-		resource = Resource(self.newResourceName.get())
-		resource.ami = self.ami.get()
-		resource.instanceType = self.instanceType.get()
+		resource = Resource(self.newResourceName.get(), self.selectedResourceType, [])
 		resource.tags = self.tagsDict
+		self.terra.resources.append(resource)
+
 		self.resourceDict[res["text"]] = resource
 		res["command"] = lambda: self.showResource(res["text"])
 		self.clearNewResource()
 
 	def clearNewResource(self):
 		self.newResourceName.set("")
-		self.ami.set("")
 		self.tagName.set("")
 		self.tagValue.set("")
-		self.instanceType.set("")
 
 		for tagName, tagButton in self.tagsList:
 			tagButton.destroy()
 
 		self.tagsList.clear()
 		self.tagsDict.clear()
-
-
-	def showResource(self, name):
-		pass
-
-	def applyResource(self, name):
-		pass
-
 
 	def plan(self):
 		tf_util.writeProvider(self.terra)

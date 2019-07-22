@@ -25,7 +25,7 @@ class GUI:
 		title = placeView(self.master, Label, x=0, y=0, w=width, h=height*0.1)
 		title["text"] = "Terraform Infrastructure Generator"
 		title["font"] = "Helvetica 25 bold"
-		title["bg"] = "#6f24e8"
+		title["bg"] = "#5C4EE5"
 		title["fg"] = "white"
 
 		introText = placeView(self.master, Label, x=width*0.05, y=height*0.1125, w=width*0.9, h=height*0.15)
