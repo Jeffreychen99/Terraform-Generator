@@ -48,7 +48,6 @@ class Resource_GUI:
 		self.applyButton["font"] = "fixedsys 20 bold"
 		self.applyButton.pack(fill=BOTH, expand=1)
 
-
 	def resourceCreation(self):
 		width = self.master.winfo_width()
 		height = self.master.winfo_height()
@@ -89,7 +88,9 @@ class Resource_GUI:
 		self.resourceType["text"] = "  Resource Type"
 		self.resourceTypeFrame = createFrame(self.master, x=width*0.525, y=height*0.2, w=width*0.175, h=height*0.05)
 		resourceTypeOptions = web_util.getResourceList(self.terra.provider)
+		resourceTypeOptions.sort()
 		self.selectedResourceType = StringVar(self.resourceTypeFrame); self.selectedResourceType.set(resourceTypeOptions[0])
+		self.selectedResourceType.trace("w", lambda x,y,z: self.createArgsFields())
 		self.resourceTypeMenu = OptionMenu(self.resourceTypeFrame, self.selectedResourceType, *resourceTypeOptions)
 		self.resourceTypeMenu.pack(fill=BOTH, expand=1)
 
@@ -113,8 +114,10 @@ class Resource_GUI:
 		self.argsCanvas.pack(side="left")
 		argsFrame = Frame(self.argsCanvas)
 		self.argsCanvas.create_window((0,0), width=width*0.525, height=height*0.2, window=argsFrame, anchor='nw')
-		argsFrame["bg"] = "#eeeeee"
 		self.argsCanvas.configure(scrollregion=(0, 0, width*0.525, height*0.2), width=width*0.425, height=height*0.2)
+
+		self.argsViews = []
+		self.createArgsFields()
 
 		self.tags = placeView(self.master, Label, x=width*0.525, y=height*0.5125, w=width*0.05, h=height*0.05)
 		self.tags["anchor"] = 'w'
@@ -180,6 +183,49 @@ class Resource_GUI:
 		self.addResourceButton.pack(fill=BOTH, expand=1)
 		self.addResourceButton["command"] = self.addResource
 
+	def createArgsFields(self):
+		if self.argsViews:
+			for arg in self.argsViews:
+				arg[1].destroy()
+				arg[3].destroy()
+
+		self.resourceArgs = {}
+		self.argsList = web_util.getResourceArgs(self.terra.provider, self.selectedResourceType.get())
+
+		width = self.master.winfo_width()
+		height = self.master.winfo_height()
+
+		scrollHeight = height*0.1*(len(self.argsList)) - height*0.025
+		if scrollHeight > height*0.275:
+			self.argsCanvas.configure(scrollregion=(0, 0, width*0.425, scrollHeight), height=scrollHeight)
+		else:
+			self.argsCanvas.configure(scrollregion=(0, 0, width*0.425, height*0.2), height=height*0.2)
+
+		self.argsViews = []
+		for arg in self.argsList:
+			argLabel = Label(self.argsCanvasFrame)
+			argLabel["anchor"] = 'sw'
+			argLabel["justify"] = 'left'
+			argLabel["font"] = "fixedsys 12 italic"
+			argLabel["fg"] = "#4e4e4e"
+			argLabel["text"] = "  " + str(arg)
+			argLabelRegion = (0, height*0.1*len(self.argsViews))
+			self.argsCanvas.create_window(argLabelRegion, width=width*0.175, height=height*0.025, window=argLabel, anchor='nw')
+
+			argVal = StringVar()
+
+			argEntry = Entry(self.argsCanvasFrame)
+			argEntry["textvariable"] = argVal
+			argEntry["borderwidth"] = 0
+			argEntry["bg"] = "#dddddd"
+			argEntryRegion = (0, height*0.1*len(self.argsViews) + height*0.025)
+			self.argsCanvas.create_window(argEntryRegion, width=width*0.4, height=height*0.05, window=argEntry, anchor='nw')
+
+			self.argsViews.append( (arg, argLabel, argVal, argEntry) )
+			self.resourceArgs[arg] = argVal
+
+
+
 	def addTag(self):
 		if self.tagName.get() == "" or self.tagValue.get() == "":
 			return
@@ -215,10 +261,21 @@ class Resource_GUI:
 			MsgBox = messagebox.showerror('Error', 'There is already a resource with this name')
 			return
 
+		resTypeFull = self.terra.provider + "_" + self.selectedResourceType.get()
+		resource = Resource(self.newResourceName.get(), resTypeFull, {})
+		resource.tags = self.tagsDict
+		for arg in self.resourceArgs:
+			if self.resourceArgs[arg].get() == "":
+				MsgBox = messagebox.showerror('Error', 'Required argument "' + arg + '" left blank')
+				return
+			resource.arguments[arg] = self.resourceArgs[arg].get()
+		self.terra.resources.append(resource)
+
 		print("Adding Resource:   + " + self.newResourceName.get())
 
 		width = self.master.winfo_width()
 		height = self.master.winfo_height()
+
 
 		scrollHeight = height*0.05*(len(self.resourceButtonList) + 1)
 		if scrollHeight > height*0.2:
@@ -233,11 +290,6 @@ class Resource_GUI:
 		self.canvas.create_window(scrollRegion, width=width*0.4125, height=height*0.05, window=res, anchor='nw')
 		self.resourceButtonList.append((res["text"], res))
 
-		resTypeFull = self.terra.provider + "_" + self.selectedResourceType.get()
-		resource = Resource(self.newResourceName.get(), resTypeFull, {})
-		resource.tags = self.tagsDict
-		self.terra.resources.append(resource)
-
 		self.resourceDict[res["text"]] = resource
 		res["command"] = lambda: self.showResource(res["text"])
 		self.clearNewResource()
@@ -249,6 +301,9 @@ class Resource_GUI:
 
 		for tagName, tagButton in self.tagsList:
 			tagButton.destroy()
+
+		for arg in self.argsViews:
+			arg[2].set("")
 
 		self.tagsList.clear()
 		self.tagsDict.clear()
